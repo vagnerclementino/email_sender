@@ -20,8 +20,8 @@ def main():
                         'vagnercs@dcc.ufmg.br')
         email_receiver = ('Vagner Clementino',
                           'vagnerclementino@pbh.gov.br')
-        email_cc = ("Vagner Clementino",
-                    'vagner.clementino@gmail.com')
+        email_cc = ("Andreza Vieira",
+                    'a.vieiralelis@gmail.com')
         while retry:
             message = emails.html(html=html_content,
                                   subject=email_subejct,
