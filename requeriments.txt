@@ -1,0 +1,9 @@
+chardet==2.3.0
+cssselect==1.0.0
+cssutils==1.0.1
+emails==0.5.10
+lxml==3.6.4
+premailer==3.0.1
+python-dateutil==2.6.0
+requests==2.11.1
+six==1.10.0
