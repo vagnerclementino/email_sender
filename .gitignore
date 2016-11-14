@@ -90,3 +90,6 @@ ENV/
 .ropeproject
 #Arquivos de configuração
 *conf.py
+#Arquivos específicos do projeto
+docs/stackoverflow-recipients.csv
+docs/python-recipients.csv
