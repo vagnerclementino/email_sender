@@ -93,3 +93,4 @@ ENV/
 #Arquivos específicos do projeto
 docs/stackoverflow-recipients.csv
 docs/python-recipients.csv
+send_html_email.py
