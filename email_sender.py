@@ -10,7 +10,7 @@ from emails.template import JinjaTemplate as T
 import time
 import logging as log
 import sys
-
+from database import Database
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -94,7 +94,7 @@ def main():
         :returns: None
 
     """
-    LIMIT_SENDER = 20
+    LIMIT_SENDER = -1
     SECONDS_NEW_SEND = 60
     log_path = './log/'
     file_name = 'email_sender'
@@ -116,7 +116,15 @@ def main():
     total_email_enviados = 0
 
     try:
+        db = Database(user=cfg.db_dissertacao["user"],
+                      password=cfg.db_dissertacao["password"],
+                      db=cfg.db_dissertacao["database"],
+                      host=cfg.db_dissertacao["host"],
+                      port=cfg.db_dissertacao["port"])
+        conn = db.get_connection()
+        meta = db.get_metadata()
         log.info("Iniciando o processo de envio de email's")
+        '''
         retry = True
         recipients_list = get_recipients(csv_file_path=args.recipients,
                                          limit=LIMIT_SENDER)
@@ -163,16 +171,19 @@ def main():
                                  "novo envio").format(SECONDS_NEW_SEND)
                     log.info(u_message)
                     total_email_enviados = total_email_enviados + 1
-                    time.sleep(60)
+                    time.sleep(60)'''
     except emails.backend.smtp.exceptions.SMTPConnectNetworkError as esmtp:
         log.error(esmtp)
+        return
     except IOError as ioe:
         log.error(ioe)
+        return
     except UnicodeError as ue:
         log.error(ue)
+        return
     except Exception as e:
         log.error(e)
-
+        return
     log.info(("Finalizado o processo de envio de email's."
               " Enviado um total de {0} emails").format(total_email_enviados))
 if __name__ == "__main__":
