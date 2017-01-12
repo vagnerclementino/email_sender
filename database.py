@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sqlalchemy
+import sys
+
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 
 class Database(object):
@@ -58,3 +62,13 @@ class Database(object):
                    (" metadados do banco de dados.")
                    )
             raise sqlalchemy.exc.SQLAlchemyError(msg)
+
+    def close_connection(self):
+        """Fechar a conexão com o banco de dados
+        :returns: TODO
+
+        """
+        try:
+            self._connection.close()
+        except sqlalchemy.exc.SQLAlchemyError as e:
+            raise e

@@ -11,7 +11,7 @@ import time
 import logging as log
 import sys
 from database import Database
-
+from sqlitalchemy.exc import SQLAlchemyError
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -29,9 +29,6 @@ def parse_args():
     # pdb.set_trace()
     if os.path.isfile(args.html_filename):
         args.html = args.html_filename
-    if os.path.isfile(args.recipients):
-        args.recipients_list = args.recipients
-    # print_args(args)
     return args
 
 
@@ -41,7 +38,7 @@ def get_parser():
         "Script to send an HTML file as an HTML email."
         "\nExamples:"
         "\n1. Send the contents of test_file.html to fred"
-        "\n$ send_html_email.py fred@example.com test_file.html"
+        "\n$ send_html_email.py test_file.html"
         "\n"
        )
     epilog = "NB This script requires a Gmail account."
@@ -53,16 +50,12 @@ def get_parser():
                                      )
     parser.add_argument('html_filename',
                         help='The HTML file as Jinja template')
-    parser.add_argument('-r', '--recipients',
-                        help='A list on cvs format of the recipients'
-                        )
     return parser
 
 
 def print_args(args):
     """Print out the input arguments."""
     print ('Sending test email by file: %s' % args.html)
-    print ('Sending teste email from list: %s' % args.recipients)
 
 
 def get_recipients(csv_file_path, limit=-1):
@@ -94,7 +87,6 @@ def main():
         :returns: None
 
     """
-    LIMIT_SENDER = -1
     SECONDS_NEW_SEND = 60
     log_path = './log/'
     file_name = 'email_sender'
@@ -180,6 +172,10 @@ def main():
         return
     except UnicodeError as ue:
         log.error(ue)
+        return
+    except SQLAlchemyError as sqle:
+        log.error(sqle)
+        db.close_connetion()
         return
     except Exception as e:
         log.error(e)
