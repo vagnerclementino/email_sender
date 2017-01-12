@@ -30,11 +30,13 @@ class Database(object):
         url = url.format(user, password, host, port, db)
         try:
             # The return value of create_engine() is our connection object
-            self._connection = sqlalchemy.create_engine(url,
-                                                        client_encoding='utf8')
+            self._engine = sqlalchemy.create_engine(url,
+                                                    client_encoding='utf8')
+            # recuperando a conexão
+            self._connection = self._engine.connect()
 
             # We then bind the connection to MetaData()
-            self._metadata = sqlalchemy.MetaData(bind=self._connection,
+            self._metadata = sqlalchemy.MetaData(bind=self._engine,
                                                  reflect=True)
         except sqlalchemy.exc.SQLAlchemyError as e:
             raise e
@@ -69,6 +71,17 @@ class Database(object):
 
         """
         try:
-            self._connection.close()
+            self._connection.connect().close()
         except sqlalchemy.exc.SQLAlchemyError as e:
             raise e
+
+    def get_engine(self):
+        """TODO: Retorna uma engine.
+        :returns: TODO
+
+        """
+        if self._engine is not None:
+            return self._engine
+        else:
+            msg = "Nenhuma engine válida foi encontrada"
+            raise sqlalchemy.exc.SQLAlchemyError(msg)

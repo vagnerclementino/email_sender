@@ -4,14 +4,17 @@ import emails
 import docs.conf as cfg
 import argparse
 # import ipdb as pdb
-import csv
 import os.path
 from emails.template import JinjaTemplate as T
 import time
 import logging as log
 import sys
 from database import Database
-from sqlitalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
+from ParametrosEnvio import ParametrosEnvio
+from Participantes import Participantes
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -58,7 +61,7 @@ def print_args(args):
     print ('Sending test email by file: %s' % args.html)
 
 
-def get_recipients(csv_file_path, limit=-1):
+def get_recipients(session):
     """TODO: Docstring for get_recipients.
 
     :csv_file: TODO
@@ -66,19 +69,8 @@ def get_recipients(csv_file_path, limit=-1):
     :returns: TODO
 
     """
-    # pdb.set_trace()
-    with open(csv_file_path, 'rb') as csv_file:
-        counter = 0
-        pythonbt_reader = csv.reader(csv_file,
-                                     delimiter=','
-                                     )
-        next(pythonbt_reader)
-        for row in pythonbt_reader:
-            if counter == limit:
-                return
-            else:
-                counter = counter + 1
-                yield row
+    for participante in session.query(Participantes).all():
+        yield participante
 
 
 def main():
@@ -113,22 +105,29 @@ def main():
                       db=cfg.db_dissertacao["database"],
                       host=cfg.db_dissertacao["host"],
                       port=cfg.db_dissertacao["port"])
-        conn = db.get_connection()
-        meta = db.get_metadata()
+        engine = db.get_engine()
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        # Get data
+        for parametros in session.query(ParametrosEnvio).all():
+            log.info("Bloqueio: {0}".format(parametros.is_envio_bloqueado()))
+            log.info(("Máx de envio {0}"
+                      ).format(parametros.get_max_num_envios()))
+
         log.info("Iniciando o processo de envio de email's")
-        '''
+
         retry = True
-        recipients_list = get_recipients(csv_file_path=args.recipients,
-                                         limit=LIMIT_SENDER)
+        recipients_list = get_recipients(session)
+
         with open(args.html, 'rb') as html_file:
             html_content = T(html_file.read())
             email_subejct = 'Survey about Issue Tracking System'
             email_sender = ('Vagner Clementino',
                             'vagnercs@dcc.ufmg.br')
             for r in recipients_list:
-                real_name = unicode(r[0]).encode('utf8')
-                user_mail = r[1]
-                project_name = r[2]
+                real_name = r._nome_participante
+                user_mail = r._email_participante
+                project_name = r._projeto_participante
                 email_ccb = ("Vagner Clementino",
                              'vagner.clementino@gmail.com')
                 retry = True
@@ -163,7 +162,7 @@ def main():
                                  "novo envio").format(SECONDS_NEW_SEND)
                     log.info(u_message)
                     total_email_enviados = total_email_enviados + 1
-                    time.sleep(60)'''
+                    time.sleep(60)
     except emails.backend.smtp.exceptions.SMTPConnectNetworkError as esmtp:
         log.error(esmtp)
         return
@@ -175,12 +174,14 @@ def main():
         return
     except SQLAlchemyError as sqle:
         log.error(sqle)
-        db.close_connetion()
+        db.close_connection()
         return
     except Exception as e:
         log.error(e)
         return
     log.info(("Finalizado o processo de envio de email's."
               " Enviado um total de {0} emails").format(total_email_enviados))
+    # Fechando a conexão
+    db.close_connection()
 if __name__ == "__main__":
     main()
