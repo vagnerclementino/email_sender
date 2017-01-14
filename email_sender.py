@@ -14,6 +14,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from ParametrosEnvio import ParametrosEnvio
 from Participantes import Participantes
+from RegistroEnvio import RegistroEnvio
+from datetime import datetime
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -73,6 +75,14 @@ def get_recipients(session):
         yield participante
 
 
+def get_current_timestamp():
+    """Retorna a data e hora atual
+    :returns: Data e hora atual
+
+    """
+    return datetime.now()
+
+
 def main():
     """
         TODO: Docstring for main.
@@ -108,14 +118,16 @@ def main():
         engine = db.get_engine()
         Session = sessionmaker(bind=engine)
         session = Session()
-        # Get data
-        for parametros in session.query(ParametrosEnvio).all():
-            log.info("Bloqueio: {0}".format(parametros.is_envio_bloqueado()))
-            log.info(("Máx de envio {0}"
-                      ).format(parametros.get_max_num_envios()))
-
-        log.info("Iniciando o processo de envio de email's")
-
+        # Obtendo os parâmetros de envios dos e-mails
+        parametros = session.query(ParametrosEnvio).first()
+        # Verificando se o envio está bloqueado
+        if not parametros.is_envio_bloqueado():
+            log.warning(("O processo de envio de e-mail "
+                         "está bloqueado! Uma nova tentativa "
+                         "de envio será feita em breve!"))
+            sys.exit(0)
+        # Inciando o envio
+        log.info("Iniciando o processo de envio de e-mail's")
         retry = True
         recipients_list = get_recipients(session)
 
@@ -152,6 +164,16 @@ def main():
                         retry = True
                     else:
                         retry = False
+                        try:
+                            data_hora_envio = get_current_timestamp()
+                            registroEnvio = RegistroEnvio(user_mail,
+                                                          data_hora_envio)
+                            session.add(registroEnvio)
+                            session.commit()
+                            total_email_enviados = total_email_enviados + 1
+                        except SQLAlchemyError as e:
+                            log.error(e)
+                            session.rollback()
                         log.info(("Enviado para o participante"
                                   " {0} do Projeto {1}"
                                   " através do e-mail {2}"
@@ -161,8 +183,8 @@ def main():
                     u_message = ("Aguardando {0} segundos para um "
                                  "novo envio").format(SECONDS_NEW_SEND)
                     log.info(u_message)
-                    total_email_enviados = total_email_enviados + 1
-                    time.sleep(60)
+                    time.sleep(SECONDS_NEW_SEND)
+
     except emails.backend.smtp.exceptions.SMTPConnectNetworkError as esmtp:
         log.error(esmtp)
         return

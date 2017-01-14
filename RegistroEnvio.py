@@ -4,7 +4,6 @@ from sqlalchemy import Column, Integer, String, Sequence
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import TIMESTAMP as TimeStamp
 from datetime import datetime
-from time import strftime
 Base = declarative_base()
 
 
@@ -14,10 +13,10 @@ class RegistroEnvio(Base):
     __tablename__ = 'registro_envio'
     _sequence_name = 'registro_envio_id_registro_envio_seq'
     _id_registro_envio = Column('id_registro_envio',
-                                      Integer,
-                                      Sequence(_sequence_name),
-                                      primary_key=True
-                                      )
+                                Integer,
+                                Sequence(_sequence_name),
+                                primary_key=True
+                                )
     _email_participante = Column('email_participante',
                                  String(500),
                                  nullable=False)
@@ -41,7 +40,7 @@ class RegistroEnvio(Base):
 
     def __repr__(self):
         rep = str()
-        str_data_envio = str(self._data_envio_email).strftime('%d/%M/%Y%H:%M:%s')
+        str_data_envio = self._data_envio_email.strftime('%d/%M/%Y%H:%M:%s')
         rep = rep + ', email: {}'.format(self._email_participante)
         rep = rep + ', data envio:: {}'.format(str_data_envio)
         rep = rep + ', url: {}'.format(self._url_formulario)
