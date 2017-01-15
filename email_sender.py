@@ -11,7 +11,6 @@ import logging as log
 import sys
 from database import Database
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker
 from ParametrosEnvio import ParametrosEnvio
 from Participantes import Participantes
 from RegistroEnvio import RegistroEnvio
@@ -66,10 +65,6 @@ def print_args(args):
 def get_recipients(session):
     """TODO: Docstring for get_recipients.
 
-    :csv_file: TODO
-    :limit: TODO
-    :returns: TODO
-
     """
     for participante in session.query(Participantes).all():
         yield participante
@@ -81,6 +76,68 @@ def get_current_timestamp():
 
     """
     return datetime.now()
+
+
+def obtem_dias_entre_data(data_inicio, data_fim):
+    """
+
+    :data_inicio: TODO
+    :data_fim: TODO
+    :returns: TODO
+
+    """
+    total_dias = (data_fim - data_inicio)
+    return total_dias
+
+
+def avalia_envio_participante(parametros_envio,
+                              participante,
+                              registro_envio,
+                              session
+                              ):
+    """Avalia se o email pode ser enviado para um participante
+       dado o registro de envios anteriores e o parâmetros de envio
+       definidos
+
+    :parametros_envio: Um objeto do tipo ParametrosEnvio
+    :participante:  Um objeto do tipo Participantes
+    :registro_envio: Um objeto do tipo RegistroEnvio
+    :returns: True se o envio pode ser realizado
+              False se o envio NÃO pode ser realizado
+
+    """
+    is_envio_permitido = False
+    total_envio = registro_envio.get_total_envios()
+    max_envio_permitido = parametros_envio._max_num_envios
+    if total_envio == 0:
+        is_envio_permitido = True
+    elif total_envio == max_envio_permitido:
+        is_envio_permitido = False
+    elif total_envio == 1:
+        ultima_data_envio = registro_envio.get_ultima_data_envio(participante,
+                                                                 session)
+        data_hora_atual = get_current_timestamp()
+        dif_em_dias = obtem_dias_entre_data(ultima_data_envio,
+                                            data_hora_atual)
+        if dif_em_dias >= 2:
+                is_envio_permitido = True
+        else:
+            is_envio_permitido = False
+
+    elif total_envio == 2:
+        ultima_data_envio = registro_envio.get_ultima_data_envio(participante,
+                                                                 session)
+        data_hora_atual = get_current_timestamp()
+
+        dif_em_dias = obtem_dias_entre_data(ultima_data_envio,
+                                            data_hora_atual)
+        if dif_em_dias >= 3:
+            is_envio_permitido = True
+        else:
+            is_envio_permitido = False
+    else:
+        is_envio_permitido = False
+    return is_envio_permitido
 
 
 def main():
@@ -115,9 +172,7 @@ def main():
                       db=cfg.db_dissertacao["database"],
                       host=cfg.db_dissertacao["host"],
                       port=cfg.db_dissertacao["port"])
-        engine = db.get_engine()
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = db._get_session()
         # Obtendo os parâmetros de envios dos e-mails
         parametros = session.query(ParametrosEnvio).first()
         # Verificando se o envio está bloqueado
@@ -205,5 +260,6 @@ def main():
               " Enviado um total de {0} emails").format(total_email_enviados))
     # Fechando a conexão
     db.close_connection()
+
 if __name__ == "__main__":
     main()

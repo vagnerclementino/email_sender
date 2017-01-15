@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy
 import sys
-
+from sqlalchemy.orm import sessionmaker
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -85,3 +85,11 @@ class Database(object):
         else:
             msg = "Nenhuma engine válida foi encontrada"
             raise sqlalchemy.exc.SQLAlchemyError(msg)
+
+    def get_session(self):
+        """Retornar um objeto de sessão para o eu chamado
+        :returns: TODO
+        """
+        Session = sessionmaker(bind=self._engine)
+        self._session = Session()
+        return self._session

@@ -41,8 +41,37 @@ class RegistroEnvio(Base):
     def __repr__(self):
         rep = str()
         str_data_envio = self._data_envio_email.strftime('%d/%M/%Y%H:%M:%s')
-        rep = rep + ', email: {}'.format(self._email_participante)
+        rep = rep + ', e-mail: {}'.format(self._email_participante)
         rep = rep + ', data envio:: {}'.format(str_data_envio)
-        rep = rep + ', url: {}'.format(self._url_formulario)
+        rep = rep + ', URL: {}'.format(self._url_formulario)
         rep = rep + '>'
         return rep
+
+    def get_total_envios(self, participante, session):
+        """
+           Recupera o total de e-mail enviando para determinado
+           participante
+
+        :participante: Um objetivo do tipo participante do qual se quer
+                       verificar o total de envios
+        :session: Um objeto de sessão para realizar a consulta
+        :returns: O total de envios para determinado participante
+
+        """
+        total_envios = session.Query(self).select()
+        return total_envios
+
+    def get_ultima_data_envio(self, participante, session):
+        """
+           Recupera a ultima data de envio de envio
+           registrada para determinado participante
+
+        :participante: Um objetivo do tipo participante do qual se quer
+                       verificar a última data de envio
+        :session: Um objeto de sessão para realizar a consulta
+        :returns: O último registro de envio. Caso não tenha sido
+                  enviado será retornado None
+
+        """
+        ultimo_envio = session.Queary(self).select()
+        return ultimo_envio
