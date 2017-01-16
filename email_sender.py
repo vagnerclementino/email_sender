@@ -3,19 +3,19 @@
 import emails
 import docs.conf as cfg
 import argparse
-# import ipdb as pdb
+import ipdb as pdb
 import os.path
 from emails.template import JinjaTemplate as T
 import time
 import logging as log
 import sys
-from database import Database
+from Database import Database
 from sqlalchemy.exc import SQLAlchemyError
 from ParametrosEnvio import ParametrosEnvio
 from Participantes import Participantes
 from RegistroEnvio import RegistroEnvio
 from datetime import datetime
-
+from GrupoParticipantes import GrupoParticipantes
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -66,7 +66,10 @@ def get_recipients(session):
     """TODO: Docstring for get_recipients.
 
     """
-    for participante in session.query(Participantes).all():
+    query = (session.query(Participantes,
+                           GrupoParticipantes).join().all()
+             )
+    for participante in query:
         yield participante
 
 
@@ -86,7 +89,7 @@ def obtem_dias_entre_data(data_inicio, data_fim):
     :returns: TODO
 
     """
-    total_dias = (data_fim - data_inicio)
+    total_dias = (data_fim - data_inicio).days
     return total_dias
 
 
@@ -95,7 +98,7 @@ def avalia_envio_participante(parametros_envio,
                               registro_envio,
                               session
                               ):
-    """Avalia se o email pode ser enviado para um participante
+    """Avalia se o e-mail pode ser enviado para um participante
        dado o registro de envios anteriores e o parâmetros de envio
        definidos
 
@@ -107,11 +110,13 @@ def avalia_envio_participante(parametros_envio,
 
     """
     is_envio_permitido = False
-    total_envio = registro_envio.get_total_envios()
+    pdb.set_trace()
+    total_envio = registro_envio.get_total_envios(participante,
+                                                  session)
     max_envio_permitido = parametros_envio._max_num_envios
     if total_envio == 0:
         is_envio_permitido = True
-    elif total_envio == max_envio_permitido:
+    elif total_envio >= max_envio_permitido:
         is_envio_permitido = False
     elif total_envio == 1:
         ultima_data_envio = registro_envio.get_ultima_data_envio(participante,
@@ -151,7 +156,7 @@ def main():
     file_name = 'email_sender'
     log_format = "[%(asctime)s] [%(levelname)s] : %(message)s"
     logFormatter = log.Formatter(log_format,
-                                 datefmt='%d-%m-%Y %H:%m:%S'
+                                 datefmt='%d-%m-%Y %H:%M:%S'
                                  )
     rootLogger = log.getLogger()
     rootLogger.setLevel(log.INFO)
@@ -167,12 +172,13 @@ def main():
     total_email_enviados = 0
 
     try:
+        # pdb.set_trace()
         db = Database(user=cfg.db_dissertacao["user"],
                       password=cfg.db_dissertacao["password"],
                       db=cfg.db_dissertacao["database"],
                       host=cfg.db_dissertacao["host"],
                       port=cfg.db_dissertacao["port"])
-        session = db._get_session()
+        session = db.get_session()
         # Obtendo os parâmetros de envios dos e-mails
         parametros = session.query(ParametrosEnvio).first()
         # Verificando se o envio está bloqueado
@@ -191,54 +197,64 @@ def main():
             email_subejct = 'Survey about Issue Tracking System'
             email_sender = ('Vagner Clementino',
                             'vagnercs@dcc.ufmg.br')
+            email_ccb = ("Vagner Clementino",
+                         'vagner.clementino@gmail.com')
             for r in recipients_list:
-                real_name = r._nome_participante
-                user_mail = r._email_participante
-                project_name = r._projeto_participante
-                email_ccb = ("Vagner Clementino",
-                             'vagner.clementino@gmail.com')
+                # pdb.set_trace()
+                real_name = r.Participantes._nome_participante
+                user_mail = r.Participantes._email_participante
+                project_name = r.GrupoParticipantes._nome_grupo
+                url_grupo = r.GrupoParticipantes._url_grupo
+                url_formulario = r.GrupoParticipantes._url_formulario
                 retry = True
-                while retry:
-                    message = emails.html(html=html_content,
-                                          subject=email_subejct,
-                                          mail_from=email_sender,
-                                          bcc=email_ccb
-                                          )
-                    smtp = {'host': cfg.smtp_dcc['host'],
-                            'port': cfg.smtp_dcc['port'],
-                            'tls': cfg.smtp_dcc['tls'],
-                            'user': cfg.smtp_dcc['user'],
-                            'password': cfg.smtp_dcc['password']
-                            }
+                data_hora_envio = get_current_timestamp()
 
-                    response = message.send(to=user_mail,
-                                            render={'real_name': real_name},
-                                            smtp=smtp
-                                            )
-                    if response.status_code not in [250, ]:
-                        retry = True
-                    else:
-                        retry = False
-                        try:
-                            data_hora_envio = get_current_timestamp()
-                            registroEnvio = RegistroEnvio(user_mail,
-                                                          data_hora_envio)
-                            session.add(registroEnvio)
-                            session.commit()
-                            total_email_enviados = total_email_enviados + 1
-                        except SQLAlchemyError as e:
-                            log.error(e)
-                            session.rollback()
-                        log.info(("Enviado para o participante"
-                                  " {0} do Projeto {1}"
-                                  " através do e-mail {2}"
-                                  ).format(real_name,
-                                           project_name,
-                                           user_mail))
-                    u_message = ("Aguardando {0} segundos para um "
-                                 "novo envio").format(SECONDS_NEW_SEND)
-                    log.info(u_message)
-                    time.sleep(SECONDS_NEW_SEND)
+                registro_envio = RegistroEnvio(user_mail,
+                                               data_hora_envio)
+
+                if avalia_envio_participante(parametros,
+                                             r.Participantes,
+                                             registro_envio,
+                                             session):
+                    while retry:
+                        message = emails.html(html=html_content,
+                                              subject=email_subejct,
+                                              mail_from=email_sender,
+                                              bcc=email_ccb
+                                              )
+                        smtp = {'host': cfg.smtp_dcc['host'],
+                                'port': cfg.smtp_dcc['port'],
+                                'tls': cfg.smtp_dcc['tls'],
+                                'user': cfg.smtp_dcc['user'],
+                                'password': cfg.smtp_dcc['password']
+                                }
+
+                        response = message.send(to=user_mail,
+                                                render={'real_name':
+                                                        real_name},
+                                                smtp=smtp
+                                                )
+                        if response.status_code not in [250, ]:
+                            retry = True
+                        else:
+                            retry = False
+                            try:
+                                session.add(registro_envio)
+                                session.commit()
+                                total_email_enviados = total_email_enviados + 1
+                            except SQLAlchemyError as e:
+                                log.error(e)
+                                session.rollback()
+                            log.info(("Enviado para o participante"
+                                      " {0} do Projeto {1}"
+                                      " através do e-mail {2}"
+                                      ).format(real_name,
+                                               project_name,
+                                               user_mail))
+                        u_message = ("Aguardando {0} segundos para um "
+                                     "novo envio").format(SECONDS_NEW_SEND)
+                        log.info(u_message)
+                        time.sleep(SECONDS_NEW_SEND)
 
     except emails.backend.smtp.exceptions.SMTPConnectNetworkError as esmtp:
         log.error(esmtp)

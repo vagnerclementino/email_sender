@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import Column, Integer, String, Sequence
+from sqlalchemy import Column, Integer, String, Sequence, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import TIMESTAMP as TimeStamp
 from datetime import datetime
@@ -33,6 +33,13 @@ class Participantes(Base):
     _data_atualizacao = Column('data_atualizacao',
                                TimeStamp,
                                nullable=False)
+    _id_grupo_participante = Column('id_grupo_participante',
+                                    Integer,
+                                    ForeignKey(("grupo_participante."
+                                                "id_grupo_participante"
+                                                )
+                                               )
+                                    )
 
     def __init__(self,
                  nome_participante,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import Column, Integer, String, Sequence
+from sqlalchemy import Column, Integer, String, Sequence, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import TIMESTAMP as TimeStamp
 from datetime import datetime
@@ -58,7 +58,11 @@ class RegistroEnvio(Base):
         :returns: O total de envios para determinado participante
 
         """
-        total_envios = session.Query(self).select()
+        total_envios = (session.query(func.count(self._email_participante))
+                        .filter(RegistroEnvio._email_participante ==
+                                participante._email_participante)
+                        .scalar()
+                        )
         return total_envios
 
     def get_ultima_data_envio(self, participante, session):
@@ -73,5 +77,9 @@ class RegistroEnvio(Base):
                   enviado será retornado None
 
         """
-        ultimo_envio = session.Queary(self).select()
+        ultimo_envio = (session.query(func.max(self._data_envio_email))
+                        .filter(RegistroEnvio._email_participante ==
+                                participante._email_participante)
+                        .scalar()
+                        )
         return ultimo_envio
