@@ -16,6 +16,7 @@ from Participantes import Participantes
 from RegistroEnvio import RegistroEnvio
 from datetime import datetime
 from GrupoParticipantes import GrupoParticipantes
+from ListaNegraParticipantes import ListaNegraParticipantes
 
 
 def parse_args():
@@ -64,10 +65,17 @@ def get_recipients(session):
     """TODO: Docstring for get_recipients.
 
     """
-    query = (session.query(Participantes,
-                           GrupoParticipantes).join().all()
-             )
-    for participante in query:
+    # Recupera a lista de participantes incluídos na lista negra
+    subquery_notin = (session.query(ListaNegraParticipantes
+                                    ._email_particpante).all()
+                      )
+    # Recupera todos os participantes
+    query_all = (session.query(Participantes, GrupoParticipantes).join()
+                 )
+    # Aplicando os filtros
+    query = query_all.filter((Participantes._email_participante
+                             .notin_(subquery_notin)))
+    for participante in query.all():
         yield participante
 
 
@@ -151,6 +159,9 @@ def main():
     """
     SECONDS_NEW_SEND = 60
     log_path = './log/'
+    # Cria o diretório de log caso ele não exista
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
     file_name = 'email_sender'
     log_format = "[%(asctime)s] [%(levelname)s] : %(message)s"
     logFormatter = log.Formatter(log_format,
