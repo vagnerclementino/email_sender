@@ -3,8 +3,7 @@
 import sqlalchemy
 import sys
 from sqlalchemy.orm import sessionmaker
-reload(sys)
-sys.setdefaultencoding('utf8')
+
 
 
 class Database(object):

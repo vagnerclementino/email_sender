@@ -16,8 +16,6 @@ from Participantes import Participantes
 from RegistroEnvio import RegistroEnvio
 from datetime import datetime
 from GrupoParticipantes import GrupoParticipantes
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 
 def parse_args():
@@ -178,7 +176,7 @@ def main():
                       db=cfg.db_dissertacao["database"],
                       host=cfg.db_dissertacao["host"],
                       port=cfg.db_dissertacao["port"])
-        session = db._get_session()
+        session = db.get_session()
         # Obtendo os parâmetros de envios dos e-mails
         parametros = session.query(ParametrosEnvio).first()
         # Verificando se o envio está bloqueado
