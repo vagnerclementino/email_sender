@@ -3,7 +3,7 @@
 import emails
 import docs.conf as cfg
 import argparse
-import ipdb as pdb
+# import ipdb as pdb
 import os.path
 from emails.template import JinjaTemplate as T
 import time
@@ -110,7 +110,7 @@ def avalia_envio_participante(parametros_envio,
 
     """
     is_envio_permitido = False
-    pdb.set_trace()
+    # pdb.set_trace()
     total_envio = registro_envio.get_total_envios(participante,
                                                   session)
     max_envio_permitido = parametros_envio._max_num_envios
@@ -182,7 +182,7 @@ def main():
         # Obtendo os parâmetros de envios dos e-mails
         parametros = session.query(ParametrosEnvio).first()
         # Verificando se o envio está bloqueado
-        if not parametros.is_envio_bloqueado():
+        if parametros.is_envio_bloqueado():
             log.warning(("O processo de envio de e-mail "
                          "está bloqueado! Uma nova tentativa "
                          "de envio será feita em breve!"))
