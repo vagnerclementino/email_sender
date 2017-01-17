@@ -178,7 +178,7 @@ def main():
                       db=cfg.db_dissertacao["database"],
                       host=cfg.db_dissertacao["host"],
                       port=cfg.db_dissertacao["port"])
-        session = db.get_session()
+        session = db._get_session()
         # Obtendo os parâmetros de envios dos e-mails
         parametros = session.query(ParametrosEnvio).first()
         # Verificando se o envio está bloqueado
