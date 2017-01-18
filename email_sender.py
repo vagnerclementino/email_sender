@@ -17,6 +17,7 @@ from RegistroEnvio import RegistroEnvio
 from datetime import datetime
 from GrupoParticipantes import GrupoParticipantes
 from ListaNegraParticipantes import ListaNegraParticipantes
+from emails.backend.smtp.exceptions import SMTPConnectNetworkError
 
 
 def parse_args():
@@ -32,7 +33,7 @@ def parse_args():
     # pdb.set_trace()
     if os.path.isfile(args.html_filename):
         args.html = args.html_filename
-    return args
+        return args
 
 
 def get_parser():
@@ -43,7 +44,7 @@ def get_parser():
         "\n1. Send the contents of test_file.html to fred"
         "\n$ send_html_email.py test_file.html"
         "\n"
-       )
+    )
     epilog = "NB This script requires a Gmail account."
 
     formatter_class = argparse.RawDescriptionHelpFormatter
@@ -67,14 +68,14 @@ def get_recipients(session):
     """
     # Recupera a lista de participantes incluídos na lista negra
     subquery_notin = (session.query(ListaNegraParticipantes
-                                    ._email_particpante).all()
+                                    ._email_participante).all()
                       )
     # Recupera todos os participantes
     query_all = (session.query(Participantes, GrupoParticipantes).join()
                  )
     # Aplicando os filtros
-    query = query_all.filter((Participantes._email_participante
-                             .notin_(subquery_notin)))
+    query = query_all.filter((Participantes.email_participante
+                              .notin_(subquery_notin)))
     for participante in query.all():
         yield participante
 
@@ -105,39 +106,40 @@ def avalia_envio_participante(parametros_envio,
                               session
                               ):
     """Avalia se o e-mail pode ser enviado para um participante
-       dado o registro de envios anteriores e o parâmetros de envio
-       definidos
+    dado o registro de envios anteriores e o parâmetros de envio
+    definidos
 
     :parametros_envio: Um objeto do tipo ParametrosEnvio
     :participante:  Um objeto do tipo Participantes
     :registro_envio: Um objeto do tipo RegistroEnvio
     :returns: True se o envio pode ser realizado
-              False se o envio NÃO pode ser realizado
+    False se o envio NÃO pode ser realizado
 
     """
     is_envio_permitido = False
     # pdb.set_trace()
     total_envio = registro_envio.get_total_envios(participante,
                                                   session)
-    max_envio_permitido = parametros_envio._max_num_envios
+    max_envio_permitido = parametros_envio.max_num_envios
     if total_envio == 0:
         is_envio_permitido = True
     elif total_envio >= max_envio_permitido:
         is_envio_permitido = False
     elif total_envio == 1:
-        ultima_data_envio = registro_envio.get_ultima_data_envio(participante,
-                                                                 session)
+        ultima_data_envio = (registro_envio
+                             .get_ultima_data_envio(participante, session))
         data_hora_atual = get_current_timestamp()
         dif_em_dias = obtem_dias_entre_data(ultima_data_envio,
                                             data_hora_atual)
         if dif_em_dias >= 2:
-                is_envio_permitido = True
+            is_envio_permitido = True
         else:
             is_envio_permitido = False
 
     elif total_envio == 2:
-        ultima_data_envio = registro_envio.get_ultima_data_envio(participante,
-                                                                 session)
+        ultima_data_envio = (registro_envio
+                             .get_ultima_data_envio(participante, session)
+                             )
         data_hora_atual = get_current_timestamp()
 
         dif_em_dias = obtem_dias_entre_data(ultima_data_envio,
@@ -153,8 +155,8 @@ def avalia_envio_participante(parametros_envio,
 
 def main():
     """
-        TODO: Docstring for main.
-        :returns: None
+    TODO: Docstring for main.
+    :returns: None
 
     """
     SECONDS_NEW_SEND = 60
@@ -170,7 +172,9 @@ def main():
     rootLogger = log.getLogger()
     rootLogger.setLevel(log.INFO)
 
-    fileHandler = log.FileHandler("{0}/{1}.log".format(log_path, file_name))
+    fileHandler = log.FileHandler(("{0}/{1}.log"
+                                   .format(log_path, file_name))
+                                  )
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
 
@@ -196,9 +200,8 @@ def main():
                          "está bloqueado! Uma nova tentativa "
                          "de envio será feita em breve!"))
             sys.exit(0)
-        # Inciando o envio
+            # Inciando o envio
         log.info("Iniciando o processo de envio de e-mail's")
-        retry = True
         recipients_list = get_recipients(session)
 
         with open(args.html, 'rb') as html_file:
@@ -210,11 +213,11 @@ def main():
                          'vagner.clementino@gmail.com')
             for r in recipients_list:
                 # pdb.set_trace()
-                real_name = r.Participantes._nome_participante
-                user_mail = r.Participantes._email_participante
-                project_name = r.GrupoParticipantes._nome_grupo
-                url_grupo = r.GrupoParticipantes._url_grupo
-                url_formulario = r.GrupoParticipantes._url_formulario
+                real_name = r.Participantes.nome_participante
+                user_mail = r.Participantes.email_participante
+                project_name = r.GrupoParticipantes.nome_grupo
+                url_grupo = r.GrupoParticipantes.url_grupo
+                url_formulario = r.GrupoParticipantes.url_formulario
                 retry = True
                 data_hora_envio = get_current_timestamp()
 
@@ -250,7 +253,7 @@ def main():
                             try:
                                 session.add(registro_envio)
                                 session.commit()
-                                total_email_enviados = total_email_enviados + 1
+                                total_email_enviados += 1
                             except SQLAlchemyError as e:
                                 log.error(e)
                                 session.rollback()
@@ -258,14 +261,16 @@ def main():
                                       " {0} do Projeto {1}"
                                       " através do e-mail {2}"
                                       ).format(real_name,
-                                               project_name,
-                                               user_mail))
-                        u_message = ("Aguardando {0} segundos para um "
-                                     "novo envio").format(SECONDS_NEW_SEND)
-                        log.info(u_message)
-                        time.sleep(SECONDS_NEW_SEND)
+                                     project_name,
+                                     user_mail))
+                            u_message = (("Aguardando {0} segundos"
+                                          " para um novo envio")
+                                         .format(SECONDS_NEW_SEND)
+                                         )
+                            log.info(u_message)
+                            time.sleep(SECONDS_NEW_SEND)
 
-    except emails.backend.smtp.exceptions.SMTPConnectNetworkError as esmtp:
+    except SMTPConnectNetworkError as esmtp:
         log.error(esmtp)
         return
     except IOError as ioe:
@@ -281,9 +286,11 @@ def main():
     except Exception as e:
         log.error(e)
         return
-    log.info(("Finalizado o processo de envio de email's."
-              " Enviado um total de {0} emails").format(total_email_enviados))
-    # Fechando a conexão
+    log.info(("Finalizado o processo de envio de e-mails's."
+              " Enviado um total de {0} e-mails")
+             .format(total_email_enviados)
+             )
+# Fechando a conexão
     db.close_connection()
 
 if __name__ == "__main__":

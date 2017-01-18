@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sqlalchemy
-import sys
 from sqlalchemy.orm import sessionmaker
-
 
 
 class Database(object):
@@ -20,23 +18,24 @@ class Database(object):
         :port: Número da porta para conexão
 
         """
-        self._user = user
-        self._password = password
-        self._db = db
-        self._host = host
-        self._port = port
+        self.user = user
+        self.password = password
+        self.db = db
+        self.host = host
+        self.port = port
         url = 'postgresql://{}:{}@{}:{}/{}'
         url = url.format(user, password, host, port, db)
         try:
             # The return value of create_engine() is our connection object
-            self._engine = sqlalchemy.create_engine(url,
-                                                    client_encoding='utf8')
+            self.engine = sqlalchemy.create_engine(url,
+                                                   client_encoding='utf8'
+                                                   )
             # recuperando a conexão
-            self._connection = self._engine.connect()
+            self.connection = self.engine.connect()
 
             # We then bind the connection to MetaData()
-            self._metadata = sqlalchemy.MetaData(bind=self._engine,
-                                                 reflect=True)
+            self.metadata = sqlalchemy.MetaData(bind=self.engine,
+                                                reflect=True)
         except sqlalchemy.exc.SQLAlchemyError as e:
             raise e
 
@@ -45,8 +44,8 @@ class Database(object):
         :returns: Um objeto de conexão ou lança uma exeção no caso de erro
 
         """
-        if self._connection is not None:
-            return self._connection
+        if self.connection is not None:
+            return self.connection
         else:
             msg = "Nenhum conexão válida foi encontrada!"
             raise sqlalchemy.exc.SQLAlchemyError(msg)
@@ -56,11 +55,12 @@ class Database(object):
         :returns: TODO
 
         """
-        if self._metadata is not None:
-            return self._metadata
+        if self.metadata is not None:
+            return self.metadata
         else:
-            msg = (("Não foi possível recuperar o")
-                   (" metadados do banco de dados.")
+            msg = (("Não foi possível recuperar o"
+                   " metadados do banco de dados."
+                    )
                    )
             raise sqlalchemy.exc.SQLAlchemyError(msg)
 
@@ -70,7 +70,7 @@ class Database(object):
 
         """
         try:
-            self._connection.connect().close()
+            self.connection.connect().close()
         except sqlalchemy.exc.SQLAlchemyError as e:
             raise e
 
@@ -79,8 +79,8 @@ class Database(object):
         :returns: TODO
 
         """
-        if self._engine is not None:
-            return self._engine
+        if self.engine is not None:
+            return self.engine
         else:
             msg = "Nenhuma engine válida foi encontrada"
             raise sqlalchemy.exc.SQLAlchemyError(msg)
@@ -89,6 +89,6 @@ class Database(object):
         """Retornar um objeto de sessão para o eu chamado
         :returns: TODO
         """
-        Session = sessionmaker(bind=self._engine)
-        self._session = Session()
-        return self._session
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
+        return self.session

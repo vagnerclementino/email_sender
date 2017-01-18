@@ -12,34 +12,34 @@ class Participantes(Base):
 
     """Docstring for Participantes. """
     __tablename__ = 'participantes_survey'
-    _sequence_name = 'participantes_survey_id_participantes_survey_seq'
-    _id_participantes_survey = Column('id_participantes_survey',
-                                      Integer,
-                                      Sequence(_sequence_name),
-                                      primary_key=True
-                                      )
-    _nome_participante = Column('nome_participante',
+    sequence_name = 'participantes_survey_id_participantes_survey_seq'
+    id_participantes_survey = Column('id_participantes_survey',
+                                     Integer,
+                                     Sequence(sequence_name),
+                                     primary_key=True
+                                     )
+    nome_participante = Column('nome_participante',
+                               String(500),
+                               nullable=False)
+    email_participante = Column('email_participante',
                                 String(500),
                                 nullable=False)
-    _email_participante = Column('email_participante',
-                                 String(500),
-                                 nullable=False)
-    _projeto_participante = Column('projeto_participante',
-                                   String(100),
-                                   nullable=False)
-    _url_formulario = Column('url_formulario',
-                             String(100),
-                             nullable=False)
-    _data_atualizacao = Column('data_atualizacao',
-                               TimeStamp,
-                               nullable=False)
-    _id_grupo_participante = Column('id_grupo_participante',
-                                    Integer,
-                                    ForeignKey(("grupo_participante."
-                                                "id_grupo_participante"
-                                                )
+    projeto_participante = Column('projeto_participante',
+                                  String(100),
+                                  nullable=False)
+    url_formulario = Column('url_formulario',
+                            String(100),
+                            nullable=False)
+    data_atualizacao = Column('data_atualizacao',
+                              TimeStamp,
+                              nullable=False)
+    id_grupo_participante = Column('id_grupo_participante',
+                                   Integer,
+                                   ForeignKey(("grupo_participante."
+                                               "id_grupo_participante"
                                                )
-                                    )
+                                              )
+                                   )
 
     def __init__(self,
                  nome_participante,
@@ -47,18 +47,18 @@ class Participantes(Base):
                  projeto_participante,
                  url_formulario,
                  data_atualizacao=datetime.now()):
-            """TODO: to be defined1. """
-            self._nome_participante = nome_participante
-            self._email_participante = email_participante
-            self._projeto_participante = projeto_participante
-            self._url_formulario = url_formulario
-            self._data_atualizacao = data_atualizacao
+        """TODO: to be defined1. """
+        self.nome_participante = nome_participante
+        self.email_participante = email_participante
+        self.projeto_participante = projeto_participante
+        self.url_formulario = url_formulario
+        self.data_atualizacao = data_atualizacao
 
     def __repr__(self):
         rep = str()
-        rep = rep + '<nome: {}'.format(self._nome_participante)
-        rep = rep + ', email: {}'.format(self._email_participante)
-        rep = rep + ', projeto: {}'.format(self._projeto_participante)
-        rep = rep + ', url: {}'.format(self._url_formulario)
+        rep = rep + '<nome: {}'.format(self.nome_participante)
+        rep = rep + ', email: {}'.format(self.email_participante)
+        rep = rep + ', projeto: {}'.format(self.projeto_participante)
+        rep = rep + ', url: {}'.format(self.url_formulario)
         rep = rep + '>'
         return rep

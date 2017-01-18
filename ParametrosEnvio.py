@@ -14,35 +14,35 @@ class ParametrosEnvio(Base):
     """Docstring for ParametroEnvio. """
 
     __tablename__ = 'parametros_envio'
-    _sequence_name = 'parametros_envio_id_parametros_envio_seq'
-    _id_parametros_envio = Column('id_parametros_envio',
-                                  Integer,
-                                  Sequence(_sequence_name),
-                                  primary_key=True)
-    _ind_bloqueio_envio = Column('ind_bloqueio_envio',
-                                 String(1),
-                                 nullable=False)
-    _max_num_envios = Column('max_num_envios',
-                             Integer,
-                             nullable=False)
-    _data_atualizacao = Column('data_atualizacao',
-                               TimeStamp,
-                               nullable=False)
+    sequence_name = 'parametros_envio_id_parametros_envio_seq'
+    id_parametros_envio = Column('id_parametros_envio',
+                                 Integer,
+                                 Sequence(sequence_name),
+                                 primary_key=True)
+    ind_bloqueio_envio = Column('ind_bloqueio_envio',
+                                String(1),
+                                nullable=False)
+    max_num_envios = Column('max_num_envios',
+                            Integer,
+                            nullable=False)
+    data_atualizacao = Column('data_atualizacao',
+                              TimeStamp,
+                              nullable=False)
 
     def __init__(self,
                  ind_bloqueio_envio,
                  max_num_envios,
                  data_atualizacao=datetime.now()):
-        self._ind_bloqueio_envio = ind_bloqueio_envio
-        self._max_num_envios = max_num_envios
-        self._data_atualizacao = data_atualizacao
+        self.ind_bloqueio_envio = ind_bloqueio_envio
+        self.max_num_envios = max_num_envios
+        self.data_atualizacao = data_atualizacao
 
     def is_envio_bloqueado(self):
         """TODO: Docstring for is_envio_bloqueado.
         :returns: TODO
 
         """
-        if self._ind_bloqueio_envio == 'S':
+        if self.ind_bloqueio_envio == 'S':
             return True
         else:
             return False
@@ -52,4 +52,4 @@ class ParametrosEnvio(Base):
         :returns: TODO
 
         """
-        return self._max_num_envios
+        return self.max_num_envios
