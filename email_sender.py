@@ -3,7 +3,7 @@
 import emails
 import docs.conf as cfg
 import argparse
-import ipdb as pdb
+# import ipdb as pdb
 import os.path
 from emails.template import JinjaTemplate as T
 import time
@@ -185,7 +185,7 @@ def main():
     total_email_enviados = 0
 
     try:
-        pdb.set_trace()
+        # pdb.set_trace()
         db = Database(user=cfg.db_dissertacao["user"],
                       password=cfg.db_dissertacao["password"],
                       db=cfg.db_dissertacao["database"],
