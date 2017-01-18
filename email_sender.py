@@ -206,7 +206,7 @@ def main():
 
         with open(args.html, 'rb') as html_file:
             html_content = T(unicode(html_file.read(), 'utf8'))
-            email_subejct = 'Survey about Issue Tracking System'
+            email_subejct = 'Improving Issue Tracking System'
             email_sender = ('Vagner Clementino',
                             'vagnercs@dcc.ufmg.br')
             email_ccb = ("Vagner Clementino",
@@ -276,29 +276,23 @@ def main():
                                          )
                             log.info(u_message)
                             time.sleep(SECONDS_NEW_SEND)
-
+        log.info(("Finalizado o processo de envio de e-mails's."
+                  " Enviado um total de {0} e-mails")
+                 .format(total_email_enviados)
+                 )
+        # Fechando a conexão
+        db.close_connection()
     except SMTPConnectNetworkError as esmtp:
         log.error(esmtp)
-        return
     except IOError as ioe:
         log.error(ioe)
-        return
     except UnicodeError as ue:
         log.error(ue)
-        return
     except SQLAlchemyError as sqle:
         log.error(sqle)
         db.close_connection()
-        return
     except Exception as e:
         log.error(e)
-        return
-    log.info(("Finalizado o processo de envio de e-mails's."
-              " Enviado um total de {0} e-mails")
-             .format(total_email_enviados)
-             )
-# Fechando a conexão
-    db.close_connection()
 
 if __name__ == "__main__":
     main()
