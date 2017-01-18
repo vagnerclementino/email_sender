@@ -3,7 +3,7 @@
 import emails
 import docs.conf as cfg
 import argparse
-# import ipdb as pdb
+import ipdb as pdb
 import os.path
 from emails.template import JinjaTemplate as T
 import time
@@ -185,7 +185,7 @@ def main():
     total_email_enviados = 0
 
     try:
-        # pdb.set_trace()
+        pdb.set_trace()
         db = Database(user=cfg.db_dissertacao["user"],
                       password=cfg.db_dissertacao["password"],
                       db=cfg.db_dissertacao["database"],
@@ -205,7 +205,7 @@ def main():
         recipients_list = get_recipients(session)
 
         with open(args.html, 'rb') as html_file:
-            html_content = T(html_file.read())
+            html_content = T(unicode(html_file.read(), 'utf8'))
             email_subejct = 'Survey about Issue Tracking System'
             email_sender = ('Vagner Clementino',
                             'vagnercs@dcc.ufmg.br')
@@ -218,6 +218,7 @@ def main():
                 project_name = r.GrupoParticipantes.nome_grupo
                 url_grupo = r.GrupoParticipantes.url_grupo
                 url_formulario = r.GrupoParticipantes.url_formulario
+                nome_grupo = r.GrupoParticipantes.nome_grupo
                 retry = True
                 data_hora_envio = get_current_timestamp()
 
@@ -243,7 +244,13 @@ def main():
 
                         response = message.send(to=user_mail,
                                                 render={'real_name':
-                                                        real_name},
+                                                        real_name,
+                                                        'url_grupo':
+                                                        url_grupo,
+                                                        'url_formulario':
+                                                        url_formulario,
+                                                        'nome_grupo':
+                                                        nome_grupo},
                                                 smtp=smtp
                                                 )
                         if response.status_code not in [250, ]:
