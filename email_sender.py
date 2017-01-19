@@ -71,7 +71,10 @@ def get_recipients(session):
                                     ._email_participante).all()
                       )
     # Recupera todos os participantes
-    query_all = (session.query(Participantes, GrupoParticipantes).join()
+    query_all = (session.query(Participantes,
+                               GrupoParticipantes).filter(Participantes.id_grupo_participante
+                                                        ==
+                                                        GrupoParticipantes.id_grupo_participante)
                  )
     # Aplicando os filtros
     query = query_all.filter((Participantes.email_participante

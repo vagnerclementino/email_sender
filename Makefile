@@ -4,8 +4,8 @@ SRC_DIR=$(CURDIR)
 SSH_HOST=ec2-52-67-130-34.sa-east-1.compute.amazonaws.com
 SSH_PORT=22
 SSH_USER=vagner
-#SSH_TARGET_DIR=/home/vagner/projects
-SSH_TARGET_DIR=/home/vagner
+SSH_TARGET_DIR=/home/vagner/projects
+#SSH_TARGET_DIR=/home/vagner
 SSH_KEY=/media/sf_Vagner/AWS/aws-s01-dev-key.pem
 EXCLUDE_FILES={'.*','*.log','*conf.py'}
 
