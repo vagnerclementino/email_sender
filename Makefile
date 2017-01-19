@@ -1,6 +1,13 @@
 HOST=127.0.0.1
 TEST_PATH=./
-SRC_DIR=$(shell pwd) 
+SRC_DIR=$(CURDIR)
+SSH_HOST=ec2-52-67-130-34.sa-east-1.compute.amazonaws.com
+SSH_PORT=22
+SSH_USER=vagner
+#SSH_TARGET_DIR=/home/vagner/projects
+SSH_TARGET_DIR=/home/vagner
+SSH_KEY=/media/sf_Vagner/AWS/aws-s01-dev-key.pem
+EXCLUDE_FILES={'.*','*.log','*conf.py'}
 
 help:
 	@echo "    clean"
@@ -37,9 +44,7 @@ run:
 	@python email_sender.py docs/email_template.html
 
 deploy: clean
-	@echo "Copiando de " $(SRC_DIR)
-	@rsync -arPvzh --exclude={'.*','*.log','*con.py'} -e 'ssh -i /run/media/vagner/Dados/Vagner/Dropbox/AWS/keys/aws-s01-dev-key.pem' $(pwd) ec2-52-67-130-34.sa-east-1.compute.amazonaws.com:/home/vagner/projects
-
+	@rsync -e "ssh -i $(SSH_KEY)" -P -trvz --exclude=$(EXCLUDE_FILES) $(SRC_DIR) $(SSH_USER)@$(SSH_HOST):$(SSH_TARGET_DIR)
 
 
 
