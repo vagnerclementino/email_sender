@@ -32,6 +32,7 @@ class Database(object):
                                                    )
             # recuperando a conexão
             self.connection = self.engine.connect()
+            self.connection.execute("SET search_path TO email_sender")
 
             # We then bind the connection to MetaData()
             self.metadata = sqlalchemy.MetaData(bind=self.engine,

@@ -35,7 +35,7 @@ class Participantes(Base):
                               nullable=False)
     id_grupo_participante = Column('id_grupo_participante',
                                    Integer,
-                                   ForeignKey(("grupo_participante."
+                                   ForeignKey(("email_sender.grupo_participante."
                                                "id_grupo_participante"
                                                )
                                               )
