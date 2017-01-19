@@ -24,18 +24,12 @@ class Participantes(Base):
     email_participante = Column('email_participante',
                                 String(500),
                                 nullable=False)
-    projeto_participante = Column('projeto_participante',
-                                  String(100),
-                                  nullable=False)
-    url_formulario = Column('url_formulario',
-                            String(100),
-                            nullable=False)
     data_atualizacao = Column('data_atualizacao',
                               TimeStamp,
                               nullable=False)
     id_grupo_participante = Column('id_grupo_participante',
                                    Integer,
-                                   ForeignKey(("email_sender.grupo_participante."
+                                   ForeignKey(("grupo_participante."
                                                "id_grupo_participante"
                                                )
                                               )
