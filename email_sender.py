@@ -162,7 +162,7 @@ def main():
     :returns: None
 
     """
-    SECONDS_NEW_SEND = 60
+    SECONDS_NEW_SEND = 5
     log_path = './log/'
     # Cria o diretório de log caso ele não exista
     if not os.path.exists(log_path):

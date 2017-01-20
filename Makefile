@@ -6,7 +6,8 @@ SSH_PORT=22
 SSH_USER=vagner
 SSH_TARGET_DIR=/home/vagner/projects
 #SSH_TARGET_DIR=/home/vagner
-SSH_KEY=/media/sf_Vagner/AWS/aws-s01-dev-key.pem
+#SSH_KEY=/media/sf_Vagner/AWS/aws-s01-dev-key.pem
+SSH_KEY=/run/media/vagner/Dados/Vagner/Dropbox/AWS/keys/aws-s01-dev-key.pem
 EXCLUDE_FILES={'.*','*.log','*conf.py'}
 
 help:
@@ -44,10 +45,8 @@ run:
 	@python email_sender.py docs/email_template.html
 
 deploy: clean
-	@rsync -e "ssh -i $(SSH_KEY)" -P -trvz --exclude=$(EXCLUDE_FILES) $(SRC_DIR) $(SSH_USER)@$(SSH_HOST):$(SSH_TARGET_DIR)
-
-
-
+	@rsync -e "ssh -i $(SSH_KEY)" -P -trvz --exclude=$(EXCLUDE_FILES) \
+		$(SRC_DIR) $(SSH_USER)@$(SSH_HOST):$(SSH_TARGET_DIR)
 
 
 .PHONY: clean
