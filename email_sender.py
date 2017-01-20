@@ -19,6 +19,9 @@ from GrupoParticipantes import GrupoParticipantes
 from ListaNegraParticipantes import ListaNegraParticipantes
 from emails.backend.smtp.exceptions import SMTPConnectNetworkError
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 
 def parse_args():
     """
@@ -216,8 +219,14 @@ def main():
                          'vagner.clementino@gmail.com')
             for r in recipients_list:
                 # pdb.set_trace()
-                real_name = r.Participantes.nome_participante
-                user_mail = r.Participantes.email_participante
+                try:
+                    real_name = (unicode(r.Participantes.nome_participante,
+                                         'utf8'))
+                    user_mail = (unicode(r.Participantes.email_participante,
+                                         'utf8'))
+                except TypeError:
+                    real_name = r.Participantes.nome_participante
+                    user_mail = r.Participantes.email_participante
                 project_name = r.GrupoParticipantes.nome_grupo
                 url_grupo = r.GrupoParticipantes.url_grupo
                 url_formulario = r.GrupoParticipantes.url_formulario
