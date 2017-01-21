@@ -34,19 +34,25 @@ class Participantes(Base):
                                                )
                                               )
                                    )
+    ind_ativo = Column('ind_ativo',
+                       String(1),
+                       nullable=False)
 
     def __init__(self,
                  nome_participante,
                  email_participante,
                  projeto_participante,
                  url_formulario,
-                 data_atualizacao=datetime.now()):
+                 ind_ativo,
+                 data_atualizacao=datetime.now()
+                 ):
         """TODO: to be defined1. """
         self.nome_participante = nome_participante
         self.email_participante = email_participante
         self.projeto_participante = projeto_participante
         self.url_formulario = url_formulario
         self.data_atualizacao = data_atualizacao
+        self.ind_ativo = ind_ativo
 
     def __repr__(self):
         rep = str()
@@ -54,5 +60,6 @@ class Participantes(Base):
         rep = rep + ', email: {}'.format(self.email_participante)
         rep = rep + ', projeto: {}'.format(self.projeto_participante)
         rep = rep + ', url: {}'.format(self.url_formulario)
+        rep = rep + ', Ativo: {}'.format(self.ind_ativo)
         rep = rep + '>'
         return rep

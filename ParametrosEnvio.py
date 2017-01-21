@@ -28,14 +28,19 @@ class ParametrosEnvio(Base):
     data_atualizacao = Column('data_atualizacao',
                               TimeStamp,
                               nullable=False)
+    ind_processando_envio = Column('ind_processando_envio',
+                                   String(1),
+                                   nullable=False)
 
     def __init__(self,
                  ind_bloqueio_envio,
                  max_num_envios,
+                 ind_processando_envio,
                  data_atualizacao=datetime.now()):
         self.ind_bloqueio_envio = ind_bloqueio_envio
         self.max_num_envios = max_num_envios
         self.data_atualizacao = data_atualizacao
+        self.ind_processando_envio = ind_processando_envio
 
     def is_envio_bloqueado(self):
         """TODO: Docstring for is_envio_bloqueado.
@@ -47,9 +52,33 @@ class ParametrosEnvio(Base):
         else:
             return False
 
+    def is_enviando_email(self):
+        """TODO: Docstring for is_envio_bloqueado.
+        :returns: TODO
+
+        """
+        if self.ind_processando_envio == 'S':
+            return True
+        else:
+            return False
+
     def get_max_num_envios(self):
         """TODO: Docstring for get_max_num_envios.
         :returns: TODO
 
         """
         return self.max_num_envios
+
+    def set_inicio_proc_envio(self):
+        """TODO: Docstring for set_inicio_proc_envio.
+        :returns: TODO
+
+        """
+        self.ind_processando_envio = 'S'
+
+    def set_fim_proc_envio(self):
+        """TODO: Docstring for set_inicio_proc_envio.
+        :returns: TODO
+
+        """
+        self.ind_processando_envio = 'N'

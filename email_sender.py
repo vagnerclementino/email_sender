@@ -19,9 +19,6 @@ from GrupoParticipantes import GrupoParticipantes
 from ListaNegraParticipantes import ListaNegraParticipantes
 from emails.backend.smtp.exceptions import SMTPConnectNetworkError
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
 
 def parse_args():
     """
@@ -78,6 +75,7 @@ def get_recipients(session):
                                GrupoParticipantes)
                  .filter(Participantes.id_grupo_participante ==
                          GrupoParticipantes.id_grupo_participante)
+                 .filter(Participantes.ind_ativo == 'S')
                  )
     # Aplicando os filtros
     query = query_all.filter((Participantes.email_participante
@@ -165,12 +163,17 @@ def main():
     :returns: None
 
     """
-    SECONDS_NEW_SEND = 5
+    TOTAL_PAUSA_LONGA = 100
+    SEGUNDOS_PAUSA_CURTA = 30
+    SEGUNDOS_PAUSA_LONGA = 1800
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
     log_path = './log/'
     # Cria o diretório de log caso ele não exista
     if not os.path.exists(log_path):
         os.makedirs(log_path)
-    file_name = 'email_sender'
+    file_name = datetime.now().strftime('%Y%m%d_%H%M%S_') + 'email_sender'
     log_format = "[%(asctime)s] [%(levelname)s] : %(message)s"
     logFormatter = log.Formatter(log_format,
                                  datefmt='%d-%m-%Y %H:%M:%S'
@@ -206,8 +209,22 @@ def main():
                          "está bloqueado! Uma nova tentativa "
                          "de envio será feita em breve!"))
             sys.exit(0)
-            # Inciando o envio
+        # Verificando se o envio está bloqueado
+        if parametros.is_enviando_email():
+            log.warning(("Já existe uma instância do processo de envio"
+                         " em execução! Uma nova tentativa "
+                         "de envio será feita em breve!"))
+            sys.exit(0)
+        # Inciando o envio
         log.info("Iniciando o processo de envio de e-mail's")
+        parametros.set_inicio_proc_envio()
+        try:
+            session.add(parametros)
+            session.commit()
+        except SQLAlchemyError as e:
+            session.rollback()
+            raise e
+
         recipients_list = get_recipients(session)
 
         with open(args.html, 'rb') as html_file:
@@ -215,8 +232,9 @@ def main():
             email_subejct = 'Improving Issue Tracking System'
             email_sender = ('Vagner Clementino',
                             'vagnercs@dcc.ufmg.br')
-            email_ccb = ("Vagner Clementino",
-                         'vagner.clementino@gmail.com')
+            email_ccb = email_sender
+            # email_ccb = ("Vagner Clementino",
+            #             'vagner.clementino@gmail.com')
             for r in recipients_list:
                 # pdb.set_trace()
                 try:
@@ -282,16 +300,24 @@ def main():
                                       ).format(real_name,
                                      project_name,
                                      user_mail))
+                            if (total_email_enviados % TOTAL_PAUSA_LONGA == 0):
+                                segundos_pausa = SEGUNDOS_PAUSA_LONGA
+                            else:
+                                segundos_pausa = SEGUNDOS_PAUSA_CURTA
                             u_message = (("Aguardando {0} segundos"
                                           " para um novo envio")
-                                         .format(SECONDS_NEW_SEND)
+                                         .format(segundos_pausa)
                                          )
                             log.info(u_message)
-                            time.sleep(SECONDS_NEW_SEND)
+                            time.sleep(segundos_pausa)
         log.info(("Finalizado o processo de envio de e-mails's."
                   " Enviado um total de {0} e-mails")
                  .format(total_email_enviados)
                  )
+        parametros.set_fim_proc_envio()
+        session.add(parametros)
+        session.commit()
+
         # Fechando a conexão
         db.close_connection()
     except SMTPConnectNetworkError as esmtp:
