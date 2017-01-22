@@ -77,7 +77,7 @@ class RegistroEnvio(Base):
         enviado será retornado None
 
         """
-        ultimo_envio = (session.query(func.max(self.data_envio_email))
+        ultimo_envio = (session.query(func.max(RegistroEnvio.data_envio_email))
                         .filter(RegistroEnvio.email_participante ==
                                 participante.email_participante)
                         .scalar()

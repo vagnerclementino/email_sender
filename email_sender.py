@@ -166,6 +166,7 @@ def main():
     TOTAL_PAUSA_LONGA = 100
     SEGUNDOS_PAUSA_CURTA = 30
     SEGUNDOS_PAUSA_LONGA = 600
+    MAX_ENVIO_DIA = 200
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
@@ -173,7 +174,7 @@ def main():
     # Cria o diretório de log caso ele não exista
     if not os.path.exists(log_path):
         os.makedirs(log_path)
-    file_name = datetime.now().strftime('%Y%m%d_%H%M%S_') + 'email_sender'
+    file_name = 'email_sender'
     log_format = "[%(asctime)s] [%(levelname)s] : %(message)s"
     logFormatter = log.Formatter(log_format,
                                  datefmt='%d-%m-%Y %H:%M:%S'
@@ -231,10 +232,9 @@ def main():
             html_content = T(unicode(html_file.read(), 'utf8'))
             email_subejct = 'Improving Issue Tracking System'
             email_sender = ('Vagner Clementino',
-                            'vagnercs@dcc.ufmg.br')
-            email_ccb = email_sender
-            # email_ccb = ("Vagner Clementino",
-            #             'vagner.clementino@gmail.com')
+                            'vagner.clementino@gmail.com')
+            email_ccb = ("Vagner Clementino",
+                         'vagner.clementino@gmail.com')
             for r in recipients_list:
                 # pdb.set_trace()
                 try:
@@ -269,9 +269,10 @@ def main():
                                 'port': cfg.smtp_dcc['port'],
                                 'tls': cfg.smtp_dcc['tls'],
                                 'user': cfg.smtp_dcc['user'],
-                                'password': cfg.smtp_dcc['password']
+                                'password': cfg.smtp_dcc['password'],
+                                'timeout': cfg.smtp_dcc['timeout']
                                 }
-
+                        # pdb.set_trace()
                         response = message.send(to=user_mail,
                                                 render={'real_name':
                                                         real_name,
@@ -284,6 +285,11 @@ def main():
                                                 smtp=smtp
                                                 )
                         if response.status_code not in [250, ]:
+                            log.warning(("Não foi possível realizar o "
+                                         "envio para o e-mail <{0}>. "
+                                         "Uma nova tentativa será realizada")
+                                        .format(user_mail)
+                                        )
                             retry = True
                         else:
                             retry = False
@@ -300,6 +306,18 @@ def main():
                                       ).format(real_name,
                                      project_name,
                                      user_mail))
+                            if total_email_enviados == MAX_ENVIO_DIA:
+                                log.info(("O total de envios por dia "
+                                          "foi alcançado. O processo "
+                                          "de envio encerrado."))
+                                parametros.set_fim_proc_envio()
+                                session.add(parametros)
+                                session.commit()
+
+                                # Fechando a conexão
+                                db.close_connection()
+                                sys.exit(1)
+
                             if (total_email_enviados % TOTAL_PAUSA_LONGA == 0):
                                 segundos_pausa = SEGUNDOS_PAUSA_LONGA
                             else:
