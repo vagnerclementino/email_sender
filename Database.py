@@ -28,7 +28,10 @@ class Database(object):
         try:
             # The return value of create_engine() is our connection object
             self.engine = sqlalchemy.create_engine(url,
-                                                   client_encoding='utf8'
+                                                   client_encoding='utf8',
+                                                   connect_args={
+                                                       'connect_timeout': 60
+                                                       }
                                                    )
             # recuperando a conexão
             self.connection = self.engine.connect()

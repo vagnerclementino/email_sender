@@ -253,6 +253,7 @@ def main():
                 data_hora_envio = get_current_timestamp()
 
                 registro_envio = RegistroEnvio(user_mail,
+                                               data_hora_envio,
                                                data_hora_envio)
 
                 if avalia_envio_participante(parametros,
@@ -307,9 +308,11 @@ def main():
                                      project_name,
                                      user_mail))
                             if total_email_enviados == MAX_ENVIO_DIA:
-                                log.info(("O total de envios por dia "
+                                log.info(("O total de envios por dia ({0})"
                                           "foi alcançado. O processo "
-                                          "de envio encerrado."))
+                                          "de envio será encerrado.")
+                                         .format(MAX_ENVIO_DIA)
+                                         )
                                 parametros.set_fim_proc_envio()
                                 session.add(parametros)
                                 session.commit()

@@ -6,7 +6,8 @@ smtp_dcc = {'host': 'smtp.dcc.ufmg.br',
             'port': 587,
             'tls': True,
             'user': 'vagnercs',
-            'password': 'password'
+            'password': 'password',
+            'timeout': 5
             }
 # Configuração para acesso ao e-mail do DCC-UFMG
 db_dissertacao = {'user': 'user',
