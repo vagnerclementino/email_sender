@@ -54,6 +54,13 @@ def get_parser():
                                      )
     parser.add_argument('html_filename',
                         help='The HTML file as Jinja template')
+
+    parser.add_argument('-t', '--title',
+                        help=('The test email subject line (defaults to "Test'
+                              'email")'
+                              ),
+                        default="Improving Issue Tracking System"
+                        )
     return parser
 
 
@@ -230,7 +237,7 @@ def main():
 
         with open(args.html, 'rb') as html_file:
             html_content = T(unicode(html_file.read(), 'utf8'))
-            email_subejct = 'Improving Issue Tracking System'
+            email_subejct = args.title
             email_sender = ('Vagner Clementino',
                             'vagner.clementino@gmail.com')
             email_ccb = ("Vagner Clementino",

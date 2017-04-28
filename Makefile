@@ -49,4 +49,4 @@ deploy: clean
 		$(SRC_DIR) $(SSH_USER)@$(SSH_HOST):$(SSH_TARGET_DIR)
 
 
-.PHONY: clean
+.PHONY: clean run lint isort
