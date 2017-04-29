@@ -1,13 +1,13 @@
-HOST=127.0.0.1
-TEST_PATH=./
 SRC_DIR=$(CURDIR)
 SSH_HOST=ec2-52-67-130-34.sa-east-1.compute.amazonaws.com
+SSH_HOST=35.185.61.152
 SSH_PORT=22
 SSH_USER=vagner
-SSH_TARGET_DIR=/home/vagner/projects
+SSH_TARGET_DIR=/home/vagner/projects/dissertacao
 #SSH_TARGET_DIR=/home/vagner
 #SSH_KEY=/media/sf_Vagner/AWS/aws-s01-dev-key.pem
-SSH_KEY=/run/media/vagner/Dados/Vagner/Dropbox/AWS/keys/aws-s01-dev-key.pem
+#SSH_KEY=/run/media/vagner/Dados/Vagner/Dropbox/AWS/keys/aws-s01-dev-key.pem
+SSH_KEY=/home/vagner/.ssh/gcloud-ssh-key
 EXCLUDE_FILES={'.*','*.log','*conf.py'}
 
 help:

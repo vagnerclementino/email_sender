@@ -293,6 +293,10 @@ def main():
                                                 smtp=smtp
                                                 )
                         if response.status_code not in [250, ]:
+                            log.warning(('Resposta do servidor'
+                                         'de email {0}'
+                                         .format(response.status_code)
+                                         ))
                             log.warning(("Não foi possível realizar o "
                                          "envio para o e-mail <{0}>. "
                                          "Uma nova tentativa será realizada")
