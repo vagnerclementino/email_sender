@@ -171,8 +171,8 @@ def main():
 
     """
     TOTAL_PAUSA_LONGA = 100
-    SEGUNDOS_PAUSA_CURTA = 30
-    SEGUNDOS_PAUSA_LONGA = 600
+    SEGUNDOS_PAUSA_CURTA = 180
+    SEGUNDOS_PAUSA_LONGA = 300
     MAX_ENVIO_DIA = 200
     reload(sys)
     sys.setdefaultencoding('utf-8')
