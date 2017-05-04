@@ -1,5 +1,5 @@
 SRC_DIR=$(CURDIR)
-SSH_HOST=ec2-52-67-130-34.sa-east-1.compute.amazonaws.com
+#SSH_HOST=ec2-52-67-130-34.sa-east-1.compute.amazonaws.com
 SSH_HOST=35.185.61.152
 SSH_PORT=22
 SSH_USER=vagner
